@@ -1,0 +1,6 @@
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/Core/Src/main.c:571:1:__io_putchar	16	static
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/Core/Src/main.c:638:6:HAL_TIM_PeriodElapsedCallback	0	static
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/Core/Src/main.c:657:6:Error_Handler	8	static
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/Core/Src/main.c:60:6:SystemClock_Config	640	static
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/Core/Src/main.c:433:6:MX_SDMMC2_SD_Init	8	static
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/Core/Src/main.c:24:5:main	88	static,ignoring_inline_asm

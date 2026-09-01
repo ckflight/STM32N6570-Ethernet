@@ -1,0 +1,11 @@
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:216:13:NetXDuo_IP_Change_Callback	3
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:18:6:MX_NetXDuo_Init	13
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:67:6:NetXDuo_DHCP_Wait	4
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:87:6:NetXDuo_TCP_Server_Start	3
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:104:6:NetXDuo_TCP_Receive_Packet	1
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:109:6:NetXDuo_TCP_Accept	2
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:120:6:NetXDuo_TCP_Receive	2
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:137:6:NetXDuo_TCP_Get_TX_Buffer	2
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:153:6:NetXDuo_TCP_Send_ZeroCopy	3
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:180:6:NetXDuo_TCP_Send	4
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/NetXDuo/App/app_netxduo.c:207:6:NetXDuo_TCP_Disconnect	1

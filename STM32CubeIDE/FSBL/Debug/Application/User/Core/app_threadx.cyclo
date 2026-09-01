@@ -1,0 +1,3 @@
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/Core/Src/app_threadx.c:34:13:EthernetEchoThread_Entry	9
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/Core/Src/app_threadx.c:14:6:App_ThreadX_Init	2
+/home/ck/Desktop/Workspace/STM32CubeIDE Workspace/STM32N6570-Ethernet/FSBL/Core/Src/app_threadx.c:28:6:MX_ThreadX_Init	1
