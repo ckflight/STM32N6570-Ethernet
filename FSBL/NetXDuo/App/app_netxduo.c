@@ -134,49 +134,6 @@ UINT NetXDuo_TCP_Receive(UCHAR *buffer, ULONG buffer_size, ULONG *received)
     return status;
 }
 
-UINT NetXDuo_TCP_Get_TX_Buffer(NX_PACKET **packet, UCHAR **buffer, ULONG *capacity)
-{
-    UINT status;
-
-    status = nx_packet_allocate(&NxAppPool, packet, NX_TCP_PACKET, TX_WAIT_FOREVER);
-
-    if (status != NX_SUCCESS)
-        return status;
-
-    *buffer = (*packet)->nx_packet_prepend_ptr;
-    *capacity = (ULONG)((*packet)->nx_packet_data_end - (*packet)->nx_packet_prepend_ptr);
-
-    return NX_SUCCESS;
-}
-
-
-UINT NetXDuo_TCP_Send_ZeroCopy(NX_PACKET *packet, ULONG length)
-{
-    UINT status;
-    ULONG capacity;
-
-    capacity = (ULONG)(packet->nx_packet_data_end - packet->nx_packet_prepend_ptr);
-
-    if (length > capacity)
-    {
-        nx_packet_release(packet);
-        return NX_SIZE_ERROR;
-    }
-
-    packet->nx_packet_append_ptr = packet->nx_packet_prepend_ptr + length;
-    packet->nx_packet_length = length;
-
-    status = nx_tcp_socket_send(&TcpSocket, packet, TX_WAIT_FOREVER);
-
-    if (status != NX_SUCCESS)
-    {
-        nx_packet_release(packet);
-        return status;
-    }
-
-    return NX_SUCCESS;
-}
-
 UINT NetXDuo_TCP_Send(UCHAR *data, ULONG length)
 {
     UINT status;

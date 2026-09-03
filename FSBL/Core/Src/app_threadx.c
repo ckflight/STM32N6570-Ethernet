@@ -11,6 +11,8 @@ static TX_THREAD EthernetEchoThread;
 
 static VOID EthernetEchoThread_Entry(ULONG thread_input);
 
+UCHAR tx_data[1400];
+
 UINT App_ThreadX_Init(VOID *memory_ptr)
 {
     UINT status;
@@ -34,10 +36,6 @@ void MX_ThreadX_Init(void)
 static VOID EthernetEchoThread_Entry(ULONG thread_input)
 {
     UINT status;
-    NX_PACKET *packet;
-    UCHAR *tx_data;
-    ULONG capacity;
-    ULONG send_length;
 
     (void)thread_input;
 
@@ -58,24 +56,15 @@ static VOID EthernetEchoThread_Entry(ULONG thread_input)
         if (status != NX_SUCCESS)
             continue;
 
+        for (int i = 0; i < 1400; i++)
+        {
+            tx_data[i] = (UCHAR)i;
+        }
+
         while (1)
         {
-            status = NetXDuo_TCP_Get_TX_Buffer(&packet, &tx_data, &capacity);
 
-            if (status != NX_SUCCESS)
-                break;
-
-            send_length = 1460;
-
-            if (send_length > capacity)
-                send_length = capacity;
-
-            for (ULONG i = 0; i < send_length; i++)
-            {
-                tx_data[i] = (UCHAR)i;
-            }
-
-            status = NetXDuo_TCP_Send_ZeroCopy(packet, send_length);
+            status = NetXDuo_TCP_Send(tx_data, 1400);
 
             if (status != NX_SUCCESS)
             {

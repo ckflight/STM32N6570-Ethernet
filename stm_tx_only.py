@@ -4,13 +4,14 @@ import time
 STM32_IP = "10.42.0.158"
 PORT = 5000
 
-TOTAL_SIZE = 512 * 1024 * 1024
+TOTAL_SIZE = 64 * 1024 * 1024
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((STM32_IP, PORT))
 
 received = 0
 start_time = time.perf_counter()
+
 
 while received < TOTAL_SIZE:
     data = sock.recv(64 * 1024)
@@ -20,6 +21,7 @@ while received < TOTAL_SIZE:
         break
 
     received += len(data)
+    print(received)
 
 end_time = time.perf_counter()
 
