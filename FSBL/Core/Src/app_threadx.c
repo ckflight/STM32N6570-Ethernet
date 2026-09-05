@@ -32,18 +32,26 @@ void MX_ThreadX_Init(void)
     tx_kernel_enter();
 }
 
-// TX ONLY TEST
 static VOID EthernetEchoThread_Entry(ULONG thread_input)
 {
     UINT status;
+    NX_PACKET *rx_packet;
 
     (void)thread_input;
 
+    /* Fill TX test data once */
+    for (int i = 0; i < 1400; i++)
+    {
+        tx_data[i] = (UCHAR)i;
+    }
+
     status = NetXDuo_DHCP_Wait();
+
     if (status != NX_SUCCESS)
         return;
 
     status = NetXDuo_TCP_Server_Start(TCP_PORT);
+
     if (status != NX_SUCCESS)
         return;
 
@@ -56,26 +64,73 @@ static VOID EthernetEchoThread_Entry(ULONG thread_input)
         if (status != NX_SUCCESS)
             continue;
 
-        for (int i = 0; i < 1400; i++)
-        {
-            tx_data[i] = (UCHAR)i;
-        }
+        printf("Client connected\r\n");
 
         while (1)
         {
+            /* RX */
+            status = NetXDuo_TCP_Receive_Packet(&rx_packet);
 
+            if (status == NX_SUCCESS)
+            {
+                nx_packet_release(rx_packet);
+            }
+
+            /* TX */
             status = NetXDuo_TCP_Send(tx_data, 1400);
 
             if (status != NX_SUCCESS)
-            {
-                printf("TCP send error: 0x%02X\r\n", status);
                 break;
-            }
         }
 
         NetXDuo_TCP_Disconnect();
     }
 }
+
+//// TX ONLY TEST
+//static VOID EthernetEchoThread_Entry(ULONG thread_input)
+//{
+//    UINT status;
+//
+//    (void)thread_input;
+//
+//    status = NetXDuo_DHCP_Wait();
+//    if (status != NX_SUCCESS)
+//        return;
+//
+//    status = NetXDuo_TCP_Server_Start(TCP_PORT);
+//    if (status != NX_SUCCESS)
+//        return;
+//
+//    while (1)
+//    {
+//        printf("Waiting TCP client...\r\n");
+//
+//        status = NetXDuo_TCP_Accept();
+//
+//        if (status != NX_SUCCESS)
+//            continue;
+//
+//        for (int i = 0; i < 1400; i++)
+//        {
+//            tx_data[i] = (UCHAR)i;
+//        }
+//
+//        while (1)
+//        {
+//
+//            status = NetXDuo_TCP_Send(tx_data, 1400);
+//
+//            if (status != NX_SUCCESS)
+//            {
+//                printf("TCP send error: 0x%02X\r\n", status);
+//                break;
+//            }
+//        }
+//
+//        NetXDuo_TCP_Disconnect();
+//    }
+//}
 
 // RX ONLY TEST
 //static VOID EthernetEchoThread_Entry(ULONG thread_input)
@@ -126,58 +181,6 @@ static VOID EthernetEchoThread_Entry(ULONG thread_input)
 //        }
 //
 //        printf("Total RX: %lu bytes\r\n", total_received);
-//
-//        NetXDuo_TCP_Disconnect();
-//    }
-//}
-
-//
-//static VOID EthernetEchoThread_Entry(ULONG thread_input)
-//{
-//    UINT status;
-//    ULONG received;
-//    UCHAR buffer[TCP_BUFFER_SIZE];
-//
-//    (void)thread_input;
-//
-//    status = NetXDuo_DHCP_Wait();
-//
-//    if (status != NX_SUCCESS)
-//    {
-//        printf("DHCP error: 0x%02X\r\n", status);
-//        return;
-//    }
-//
-//    status = NetXDuo_TCP_Server_Start(TCP_PORT);
-//
-//    if (status != NX_SUCCESS)
-//    {
-//        printf("TCP server error: 0x%02X\r\n", status);
-//        return;
-//    }
-//
-//    while (1)
-//    {
-//        printf("Waiting TCP client...\r\n");
-//
-//        status = NetXDuo_TCP_Accept();
-//
-//        if (status != NX_SUCCESS) continue;
-//
-//        while (1)
-//        {
-//            status = NetXDuo_TCP_Receive(buffer, sizeof(buffer), &received);
-//
-//            if (status != NX_SUCCESS) break;
-//
-//            if (received == 0) continue;
-//
-//            //printf("RX: %lu bytes\r\n", received);
-//
-//            //status = NetXDuo_TCP_Send(buffer, received);
-//
-//            //if (status != NX_SUCCESS) break;
-//        }
 //
 //        NetXDuo_TCP_Disconnect();
 //    }
