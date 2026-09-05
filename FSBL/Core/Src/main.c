@@ -581,6 +581,8 @@ PUTCHAR_PROTOTYPE
 
  /* MPU Configuration */
 
+/* MPU Configuration */
+
 void MPU_Config(void)
 {
   MPU_Region_InitTypeDef MPU_InitStruct = {0};
@@ -591,42 +593,50 @@ void MPU_Config(void)
   /* Disables the MPU */
   HAL_MPU_Disable();
 
-  /** Initializes and configures the Region 0 and the memory to be protected
-  */
-  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-  MPU_InitStruct.BaseAddress = 0x341D4000;
-  MPU_InitStruct.LimitAddress = 0x341D417F;
-  MPU_InitStruct.AttributesIndex = MPU_ATTRIBUTES_NUMBER0;
-  MPU_InitStruct.AccessPermission = MPU_REGION_ALL_RW;
-  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
-  MPU_InitStruct.DisablePrivExec = MPU_PRIV_INSTRUCTION_ACCESS_ENABLE;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  /** Region 0: ETH DMA descriptor'ları (Rx/Tx desc ring)
+   *  0x341D4000 - 0x341D417F
+   *  BURASI NON-CACHEABLE KALMALI. HAL, descriptor OWN bit'ini
+   *  cache maintenance yapmadan doğrudan okuyup yazıyor.
+   */
+  MPU_InitStruct.Enable            = MPU_REGION_ENABLE;
+  MPU_InitStruct.Number            = MPU_REGION_NUMBER0;
+  MPU_InitStruct.BaseAddress       = 0x341D4000;
+  MPU_InitStruct.LimitAddress      = 0x341D417F;
+  MPU_InitStruct.AttributesIndex   = MPU_ATTRIBUTES_NUMBER0;
+  MPU_InitStruct.AccessPermission  = MPU_REGION_ALL_RW;
+  MPU_InitStruct.DisableExec       = MPU_INSTRUCTION_ACCESS_ENABLE;
+  MPU_InitStruct.DisablePrivExec   = MPU_PRIV_INSTRUCTION_ACCESS_ENABLE;
+  MPU_InitStruct.IsShareable       = MPU_ACCESS_NOT_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region 1 and the memory to be protected
-  */
-  MPU_InitStruct.Number = MPU_REGION_NUMBER1;
-  MPU_InitStruct.BaseAddress = 0x341D4180;
-  MPU_InitStruct.LimitAddress = 0x341FFFFF;
+  /** Region 1: NetX paket havuzu (NxServerPoolSection + NetXPoolSection)
+   *  0x341D4180 - 0x341FFFFF
+   *  Bu, memcpy ile kopyaladığın gerçek veri buffer'larının olduğu alan.
+   *  CACHEABLE yapılıyor (Write-Through + Read/Write-Allocate).
+   */
+  MPU_InitStruct.Number            = MPU_REGION_NUMBER1;
+  MPU_InitStruct.BaseAddress       = 0x341D4180;
+  MPU_InitStruct.LimitAddress      = 0x341FFFFF;
+  MPU_InitStruct.AttributesIndex   = MPU_ATTRIBUTES_NUMBER1;   /* <-- farklı attribute index */
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Attribute 0 and the memory to be protected
-  */
-  MPU_AttributesInit.Number = MPU_ATTRIBUTES_NUMBER0;
-  MPU_AttributesInit.Attributes = INNER_OUTER(MPU_NOT_CACHEABLE);
-
+  /** Attribute 0: Non-cacheable (descriptor bölgesi için) */
+  MPU_AttributesInit.Number        = MPU_ATTRIBUTES_NUMBER0;
+  MPU_AttributesInit.Attributes    = INNER_OUTER(MPU_NOT_CACHEABLE);
   HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
+
+  /** Attribute 1: Cacheable, Write-Through, Read/Write-Allocate (pool bölgesi için) */
+  MPU_AttributesInit.Number        = MPU_ATTRIBUTES_NUMBER1;
+  MPU_AttributesInit.Attributes    = INNER_OUTER(MPU_WRITE_THROUGH | MPU_RW_ALLOCATE);
+  HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
+
   /* Enables the MPU */
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
-  /* Exit critical section to lock the system and avoid any issue around MPU mechanism */
   __set_PRIMASK(primask_bit);
-
 }
-
 /**
   * @brief  Period elapsed callback in non blocking mode
   * @note   This function is called  when TIM6 interrupt took place, inside
