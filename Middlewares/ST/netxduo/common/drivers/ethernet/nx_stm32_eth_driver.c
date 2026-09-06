@@ -2320,7 +2320,13 @@ void HAL_ETH_RxAllocateCallback(uint8_t ** buff)
   {
     /* Adjust the packet.  */
     packet_ptr -> nx_packet_prepend_ptr += 2;
-    invalidate_cache_by_addr((uint32_t*)packet_ptr -> nx_packet_data_start, packet_ptr -> nx_packet_data_end - packet_ptr -> nx_packet_data_start);
+    //invalidate_cache_by_addr((uint32_t*)packet_ptr -> nx_packet_data_start, packet_ptr -> nx_packet_data_end - packet_ptr -> nx_packet_data_start);
+    SCB_CleanInvalidateDCache_by_Addr(
+        (void *)packet_ptr->nx_packet_data_start,
+        (int32_t)(packet_ptr->nx_packet_data_end -
+                  packet_ptr->nx_packet_data_start));
+
+
     *buff = packet_ptr -> nx_packet_prepend_ptr;
   }
   else

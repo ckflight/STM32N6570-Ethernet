@@ -629,7 +629,7 @@ void MPU_Config(void)
 
   /** Attribute 1: Cacheable, Write-Through, Read/Write-Allocate (pool bölgesi için) */
   MPU_AttributesInit.Number        = MPU_ATTRIBUTES_NUMBER1;
-  MPU_AttributesInit.Attributes    = INNER_OUTER(MPU_WRITE_THROUGH | MPU_RW_ALLOCATE);
+  MPU_AttributesInit.Attributes    = INNER_OUTER(MPU_WRITE_BACK | MPU_RW_ALLOCATE);
   HAL_MPU_ConfigMemoryAttributes(&MPU_AttributesInit);
 
   /* Enables the MPU */
