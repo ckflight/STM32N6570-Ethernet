@@ -134,14 +134,57 @@ UINT NetXDuo_TCP_Receive(UCHAR *buffer, ULONG buffer_size, ULONG *received)
     return status;
 }
 
+UINT NetXDuo_TCP_Get_TX_Buffer(NX_PACKET **packet, UCHAR **tx_data, ULONG *capacity)
+{
+    UINT status;
+
+    // Gives ethernet packet in NetX packet format with header etc to put data in it
+    status = nx_packet_allocate(&NxAppPool, packet, NX_TCP_PACKET, TX_WAIT_FOREVER);
+
+    if (status != NX_SUCCESS)
+        return status;
+
+    // Assign NetX packets payload address to the tx data
+    *tx_data = (*packet)->nx_packet_append_ptr;
+
+    *capacity = (ULONG)((*packet)->nx_packet_data_end - (*packet)->nx_packet_append_ptr);
+
+    return NX_SUCCESS;
+}
+
+UINT NetXDuo_TCP_Send_ZeroCopy(NX_PACKET *packet, ULONG length)
+{
+    UINT status;
+
+    if (length > (ULONG)(packet->nx_packet_data_end - packet->nx_packet_append_ptr))
+    {
+        nx_packet_release(packet);
+        return NX_SIZE_ERROR;
+    }
+
+    packet->nx_packet_append_ptr += length;
+    packet->nx_packet_length += length;
+
+    status = nx_tcp_socket_send(&TcpSocket, packet, TX_WAIT_FOREVER);
+
+    if (status != NX_SUCCESS)
+    {
+        nx_packet_release(packet);
+    }
+
+    return status;
+}
+
 UINT NetXDuo_TCP_Send(UCHAR *data, ULONG length)
 {
     UINT status;
     NX_PACKET *packet;
 
+    // Gives ethernet packet in NetX packet format with header etc to put data in it
     status = nx_packet_allocate(&NxAppPool, &packet, NX_TCP_PACKET, TX_WAIT_FOREVER);
     if (status != NX_SUCCESS) return status;
 
+    // Put data into the packet
     status = nx_packet_data_append(packet, data, length, &NxAppPool, TX_WAIT_FOREVER);
 
     if (status != NX_SUCCESS)
@@ -150,6 +193,7 @@ UINT NetXDuo_TCP_Send(UCHAR *data, ULONG length)
         return status;
     }
 
+    // Send the data with also adding tcp headers to the packet
     status = nx_tcp_socket_send(&TcpSocket, packet, TX_WAIT_FOREVER);
 
     if (status != NX_SUCCESS)

@@ -88,18 +88,24 @@ void MX_ThreadX_Init(void)
 //    }
 //}
 
-// TX ONLY TEST
+// TX ONLY ZERO COPY
 static VOID EthernetEchoThread_Entry(ULONG thread_input)
 {
     UINT status;
+    NX_PACKET *packet;
+    UCHAR *tx_ptr;
+    ULONG capacity;
+    ULONG send_length;
 
     (void)thread_input;
 
     status = NetXDuo_DHCP_Wait();
+
     if (status != NX_SUCCESS)
         return;
 
     status = NetXDuo_TCP_Server_Start(TCP_PORT);
+
     if (status != NX_SUCCESS)
         return;
 
@@ -112,15 +118,28 @@ static VOID EthernetEchoThread_Entry(ULONG thread_input)
         if (status != NX_SUCCESS)
             continue;
 
-        for (int i = 0; i < 1400; i++)
-        {
-            tx_data[i] = (UCHAR)i;
-        }
-
         while (1)
         {
+        	// Put NetX Ethernet packet's payload to tx_data,
+        	// so tx_data will point to the packet's payload.
+            status = NetXDuo_TCP_Get_TX_Buffer(&packet, &tx_ptr, &capacity);
 
-            status = NetXDuo_TCP_Send(tx_data, 1400);
+            if (status != NX_SUCCESS)
+                break;
+
+            send_length = 1400;
+
+            if (send_length > capacity)
+                send_length = capacity;
+
+            // Put send data to the payload since tx_ptr is pointing there
+            for (ULONG i = 0; i < send_length; i++)
+            {
+                tx_ptr[i] = (UCHAR)i;
+            }
+
+            // Send the data
+            status = NetXDuo_TCP_Send_ZeroCopy(packet, send_length);
 
             if (status != NX_SUCCESS)
             {
@@ -132,6 +151,51 @@ static VOID EthernetEchoThread_Entry(ULONG thread_input)
         NetXDuo_TCP_Disconnect();
     }
 }
+
+//// TX ONLY TEST
+//static VOID EthernetEchoThread_Entry(ULONG thread_input)
+//{
+//    UINT status;
+//
+//    (void)thread_input;
+//
+//    status = NetXDuo_DHCP_Wait();
+//    if (status != NX_SUCCESS)
+//        return;
+//
+//    status = NetXDuo_TCP_Server_Start(TCP_PORT);
+//    if (status != NX_SUCCESS)
+//        return;
+//
+//    while (1)
+//    {
+//        printf("Waiting TCP client...\r\n");
+//
+//        status = NetXDuo_TCP_Accept();
+//
+//        if (status != NX_SUCCESS)
+//            continue;
+//
+//        while (1)
+//        {
+//
+//            for (int i = 0; i < 1400; i++)
+//            {
+//                tx_data[i] = (UCHAR)i;
+//            }
+//
+//            status = NetXDuo_TCP_Send(tx_data, 1400);
+//
+//            if (status != NX_SUCCESS)
+//            {
+//                printf("TCP send error: 0x%02X\r\n", status);
+//                break;
+//            }
+//        }
+//
+//        NetXDuo_TCP_Disconnect();
+//    }
+//}
 
 // RX ONLY TEST
 //static VOID EthernetEchoThread_Entry(ULONG thread_input)
