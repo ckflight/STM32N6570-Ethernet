@@ -63,72 +63,33 @@ void SystemClock_Config(void)
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-    /* Power configuration */
-    if (HAL_PWREx_ConfigSupply(PWR_EXTERNAL_SOURCE_SUPPLY) != HAL_OK)
-    {
-        Error_Handler();
-    }
+    if (HAL_PWREx_ConfigSupply(PWR_EXTERNAL_SOURCE_SUPPLY) != HAL_OK) Error_Handler();
+    if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK) Error_Handler();
 
-    if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
-    {
-        Error_Handler();
-    }
-
-    /* Enable HSI first */
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
     RCC_OscInitStruct.HSIState = RCC_HSI_ON;
     RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
     RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-
     RCC_OscInitStruct.PLL1.PLLState = RCC_PLL_NONE;
     RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_NONE;
     RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
     RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_NONE;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) Error_Handler();
 
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-    {
-        Error_Handler();
-    }
-
-    /* TIM clock configuration */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_TIM;
     PeriphClkInitStruct.TIMPresSelection = RCC_TIMPRES_DIV1;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) Error_Handler();
 
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-    {
-        Error_Handler();
-    }
-
-    /*
-     * If CPU/SYSCLK are already sourced from IC clocks,
-     * temporarily switch them back to HSI before changing PLL1.
-     */
     HAL_RCC_GetClockConfig(&RCC_ClkInitStruct);
-
-    if ((RCC_ClkInitStruct.CPUCLKSource == RCC_CPUCLKSOURCE_IC1) ||
-        (RCC_ClkInitStruct.SYSCLKSource == RCC_SYSCLKSOURCE_IC2_IC6_IC11))
+    if ((RCC_ClkInitStruct.CPUCLKSource == RCC_CPUCLKSOURCE_IC1) || (RCC_ClkInitStruct.SYSCLKSource == RCC_SYSCLKSOURCE_IC2_IC6_IC11))
     {
-        RCC_ClkInitStruct.ClockType =
-            RCC_CLOCKTYPE_CPUCLK |
-            RCC_CLOCKTYPE_SYSCLK;
-
+        RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_CPUCLK | RCC_CLOCKTYPE_SYSCLK;
         RCC_ClkInitStruct.CPUCLKSource = RCC_CPUCLKSOURCE_HSI;
         RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-
-        if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct) != HAL_OK)
-        {
-            Error_Handler();
-        }
+        if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct) != HAL_OK) Error_Handler();
     }
 
-    /*
-     * HSI = 64 MHz
-     *
-     * PLL1 = 64 / 2 * 25
-     *      = 800 MHz
-     */
     RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_NONE;
-
     RCC_OscInitStruct.PLL1.PLLState = RCC_PLL_ON;
     RCC_OscInitStruct.PLL1.PLLSource = RCC_PLLSOURCE_HSI;
     RCC_OscInitStruct.PLL1.PLLM = 2;
@@ -136,179 +97,29 @@ void SystemClock_Config(void)
     RCC_OscInitStruct.PLL1.PLLFractional = 0;
     RCC_OscInitStruct.PLL1.PLLP1 = 1;
     RCC_OscInitStruct.PLL1.PLLP2 = 1;
-
     RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_NONE;
     RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
     RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_NONE;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) Error_Handler();
 
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-    {
-        Error_Handler();
-    }
-
-    /*
-     * Clock tree:
-     *
-     * PLL1   = 800 MHz
-     * CPU    = PLL1 / 1 = 800 MHz
-     * SYSCLK = PLL1 / 2 = 400 MHz
-     * HCLK   = SYSCLK / 2 = 200 MHz
-     * PCLK1  = 200 MHz
-     * PCLK2  = 200 MHz
-     * PCLK4  = 200 MHz
-     * PCLK5  = 200 MHz
-     */
-    RCC_ClkInitStruct.ClockType =
-        RCC_CLOCKTYPE_CPUCLK |
-        RCC_CLOCKTYPE_HCLK   |
-        RCC_CLOCKTYPE_SYSCLK |
-        RCC_CLOCKTYPE_PCLK1  |
-        RCC_CLOCKTYPE_PCLK2  |
-        RCC_CLOCKTYPE_PCLK4  |
-        RCC_CLOCKTYPE_PCLK5;
-
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_CPUCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_PCLK4 | RCC_CLOCKTYPE_PCLK5;
     RCC_ClkInitStruct.CPUCLKSource = RCC_CPUCLKSOURCE_IC1;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_IC2_IC6_IC11;
-
-    /* CPU = PLL1 / 1 = 800 MHz */
     RCC_ClkInitStruct.IC1Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
     RCC_ClkInitStruct.IC1Selection.ClockDivider = 1;
-
-    /* SYSCLK = PLL1 / 2 = 400 MHz */
     RCC_ClkInitStruct.IC2Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
     RCC_ClkInitStruct.IC2Selection.ClockDivider = 2;
-
-    /*
-     * Ethernet-only project:
-     * keep IC6 and IC11 sourced from PLL1.
-     */
     RCC_ClkInitStruct.IC6Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
     RCC_ClkInitStruct.IC6Selection.ClockDivider = 2;
-
     RCC_ClkInitStruct.IC11Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
     RCC_ClkInitStruct.IC11Selection.ClockDivider = 2;
-
-    /* HCLK = 400 / 2 = 200 MHz */
     RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
-
     RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
     RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV1;
     RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;
     RCC_ClkInitStruct.APB5CLKDivider = RCC_APB5_DIV1;
-
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct) != HAL_OK)
-    {
-        Error_Handler();
-    }
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct) != HAL_OK) Error_Handler();
 }
-
-//void SystemClock_Config(void)
-//{
-//  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
-//  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-//  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-//
-//  /** Configure the System Power Supply
-//  */
-//  if (HAL_PWREx_ConfigSupply(PWR_EXTERNAL_SOURCE_SUPPLY) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//
-//  /** Configure the main internal regulator output voltage
-//  */
-//  if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//
-//  /* Enable HSI */
-//  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-//  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-//  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
-//  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-//  RCC_OscInitStruct.PLL1.PLLState = RCC_PLL_NONE;
-//  RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_NONE;
-//  RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
-//  RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_NONE;
-//  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//
-//  /** Initializes TIMPRE when TIM is used as Systick Clock Source
-//  */
-//  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_TIM;
-//  PeriphClkInitStruct.TIMPresSelection = RCC_TIMPRES_DIV1;
-//  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//
-//  /** Get current CPU/System buses clocks configuration and if necessary switch
-// to intermediate HSI clock to ensure target clock can be set
-//  */
-//  HAL_RCC_GetClockConfig(&RCC_ClkInitStruct);
-//  if ((RCC_ClkInitStruct.CPUCLKSource == RCC_CPUCLKSOURCE_IC1) ||
-//     (RCC_ClkInitStruct.SYSCLKSource == RCC_SYSCLKSOURCE_IC2_IC6_IC11))
-//  {
-//    RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_CPUCLK | RCC_CLOCKTYPE_SYSCLK);
-//    RCC_ClkInitStruct.CPUCLKSource = RCC_CPUCLKSOURCE_HSI;
-//    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
-//    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct) != HAL_OK)
-//    {
-//      /* Initialization Error */
-//      Error_Handler();
-//    }
-//  }
-//
-//  /** Initializes the RCC Oscillators according to the specified parameters
-//  * in the RCC_OscInitTypeDef structure.
-//  */
-//  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_NONE;
-//  RCC_OscInitStruct.PLL1.PLLState = RCC_PLL_ON;
-//  RCC_OscInitStruct.PLL1.PLLSource = RCC_PLLSOURCE_HSI;
-//  RCC_OscInitStruct.PLL1.PLLM = 4;
-//  RCC_OscInitStruct.PLL1.PLLN = 75;
-//  RCC_OscInitStruct.PLL1.PLLFractional = 0;
-//  RCC_OscInitStruct.PLL1.PLLP1 = 1;
-//  RCC_OscInitStruct.PLL1.PLLP2 = 1;
-//  RCC_OscInitStruct.PLL2.PLLState = RCC_PLL_NONE;
-//  RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
-//  RCC_OscInitStruct.PLL4.PLLState = RCC_PLL_NONE;
-//  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//
-//  /** Initializes the CPU, AHB and APB buses clocks
-//  */
-//  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_CPUCLK|RCC_CLOCKTYPE_HCLK
-//                              |RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1
-//                              |RCC_CLOCKTYPE_PCLK2|RCC_CLOCKTYPE_PCLK5
-//                              |RCC_CLOCKTYPE_PCLK4;
-//  RCC_ClkInitStruct.CPUCLKSource = RCC_CPUCLKSOURCE_IC1;
-//  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_IC2_IC6_IC11;
-//  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
-//  RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
-//  RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV1;
-//  RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;
-//  RCC_ClkInitStruct.APB5CLKDivider = RCC_APB5_DIV1;
-//  RCC_ClkInitStruct.IC1Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-//  RCC_ClkInitStruct.IC1Selection.ClockDivider = 2;
-//  RCC_ClkInitStruct.IC2Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-//  RCC_ClkInitStruct.IC2Selection.ClockDivider = 3;
-//  RCC_ClkInitStruct.IC6Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-//  RCC_ClkInitStruct.IC6Selection.ClockDivider = 4;
-//  RCC_ClkInitStruct.IC11Selection.ClockSelection = RCC_ICCLKSOURCE_PLL1;
-//  RCC_ClkInitStruct.IC11Selection.ClockDivider = 3;
-//
-//  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//
-//}
 
 /**
   * @brief ETH1 Initialization Function
@@ -317,16 +128,8 @@ void SystemClock_Config(void)
   */
 static void MX_ETH1_Init(void)
 {
-
-  /* USER CODE BEGIN ETH1_Init 0 */
-
-  /* USER CODE END ETH1_Init 0 */
-
    static uint8_t MACAddr[6];
 
-  /* USER CODE BEGIN ETH1_Init 1 */
-
-  /* USER CODE END ETH1_Init 1 */
   heth1.Instance = ETH1;
   MACAddr[0] = 0x00;
   MACAddr[1] = 0x80;
@@ -343,17 +146,10 @@ static void MX_ETH1_Init(void)
   }
   heth1.Init.RxBuffLen = 1536;
 
-  /* USER CODE BEGIN MACADDRESS */
-
-  /* USER CODE END MACADDRESS */
-
   if (HAL_ETH_Init(&heth1) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN ETH1_Init 2 */
-
-  /* USER CODE END ETH1_Init 2 */
 
 }
 
@@ -364,12 +160,6 @@ static void MX_ETH1_Init(void)
   */
   static void SystemIsolation_Config(void)
 {
-
-  /* USER CODE BEGIN RIF_Init 0 */
-
-  /* USER CODE END RIF_Init 0 */
-
-  /* set all required IPs as secure privileged */
   __HAL_RCC_RIFSC_CLK_ENABLE();
 
   /*RIMC configuration*/
@@ -383,46 +173,6 @@ static void MX_ETH1_Init(void)
   /*RISUP configuration*/
   HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_SDMMC2 , RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV);
   HAL_RIF_RISC_SetSlaveSecureAttributes(RIF_RISC_PERIPH_INDEX_ETH1 , RIF_ATTRIBUTE_SEC | RIF_ATTRIBUTE_PRIV);
-
-  /* RIF-Aware IPs Config */
-
-  /* set up GPIO configuration */
-  HAL_GPIO_ConfigPinAttributes(GPIOC,GPIO_PIN_0,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOC,GPIO_PIN_2,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOC,GPIO_PIN_3,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOC,GPIO_PIN_4,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOC,GPIO_PIN_5,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOD,GPIO_PIN_1,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOD,GPIO_PIN_3,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOD,GPIO_PIN_12,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOE,GPIO_PIN_4,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOE,GPIO_PIN_5,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOE,GPIO_PIN_6,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_0,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_2,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_5,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_7,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_8,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_9,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_10,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_11,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_12,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_13,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_14,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOF,GPIO_PIN_15,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOG,GPIO_PIN_3,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOG,GPIO_PIN_4,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOG,GPIO_PIN_10,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPION,GPIO_PIN_12,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-  HAL_GPIO_ConfigPinAttributes(GPIOO,GPIO_PIN_1,GPIO_PIN_SEC|GPIO_PIN_NPRIV);
-
-  /* USER CODE BEGIN RIF_Init 1 */
-
-  /* USER CODE END RIF_Init 1 */
-  /* USER CODE BEGIN RIF_Init 2 */
-
-  /* USER CODE END RIF_Init 2 */
-
 }
 
 /**
